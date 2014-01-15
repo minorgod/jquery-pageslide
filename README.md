@@ -30,6 +30,14 @@ By default, linked pages are loaded into an iframe. Set this to false if you don
 
 Override the source of the content. Optional in most cases, but required when opening pageslide programmatically (e.g. <code>$.pageslide({ href: '#some-element' });</code> ) (default=null)
 
+### slideBody
+
+By default, the body of the page slides over to make room for the sliding panel. You can override this and make the panel overlap the body by setting slideBody to false.
+
+### userCallback
+
+You can pass a function via the userCallback option and this function will be called when the sliding panel finishes opening or closing. 
+
 ## Setup
 
 In the HEAD tag:
@@ -66,6 +74,12 @@ To close pageslide programatically:
 ```
 
 ## Changelog
+
+### Version 2.0.1
+
+* Added userCallback option
+* Added slideBody option
+
 
 ### Version 2.0
 
