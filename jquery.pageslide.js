@@ -1,7 +1,9 @@
 /*
  * jQuery pageSlide
- * Version 2.0
- * http://srobbin.com/jquery-pageslide/
+ * Version 2.0.1
+ * https://github.com/minorgod/jquery-pageslide
+ * forked from
+ * https://github.com/srobbin/jquery-pageslide
  *
  * jQuery Javascript plugin which slides a webpage over to reveal an additional interaction pane.
  *
@@ -56,7 +58,7 @@
     }
     
     // Function that controls opening of the pageslide
-    function _start( direction, speed ) {
+    function _start( direction, speed, slideBody ) {
         var slideWidth = $pageslide.outerWidth( true ),
             bodyAnimateIn = {},
             slideAnimateIn = {};
@@ -68,18 +70,19 @@
         switch( direction ) {
             case 'left':
                 $pageslide.css({ left: 'auto', right: '-' + slideWidth + 'px' });
-                bodyAnimateIn['margin-left'] = '-=' + slideWidth;
+                if(slideBody)bodyAnimateIn['margin-left'] = '-=' + slideWidth;
                 slideAnimateIn['right'] = '+=' + slideWidth;
                 break;
             default:
                 $pageslide.css({ left: '-' + slideWidth + 'px', right: 'auto' });
-                bodyAnimateIn['margin-left'] = '+=' + slideWidth;
+                if(slideBody)bodyAnimateIn['margin-left'] = '+=' + slideWidth;
                 slideAnimateIn['left'] = '+=' + slideWidth;
                 break;
         }
                     
         // Animate the slide, and attach this slide's settings to the element
-        $body.animate(bodyAnimateIn, speed);
+        if(slideBody)$body.animate(bodyAnimateIn, speed);
+        
         $pageslide.show()
                   .animate(slideAnimateIn, speed, function() {
                       _sliding = false;
@@ -122,7 +125,9 @@
         direction:  'right',    // Accepts 'left' or 'right'
         modal:      false,      // If set to true, you must explicitly close pageslide using $.pageslide.close();
         iframe:     true,       // By default, linked pages are loaded into an iframe. Set this to false if you don't want an iframe.
-        href:       null        // Override the source of the content. Optional in most cases, but required when opening pageslide programmatically.
+        href:       null,        // Override the source of the content. Optional in most cases, but required when opening pageslide programmatically.
+        userCallback: function(){}, //allow userCallback
+        slideBody : true //whether to slide the whole page over or not
     };
 	
 	/*
@@ -138,16 +143,18 @@
         if( $pageslide.is(':visible') && $pageslide.data( 'direction' ) != settings.direction) {
             $.pageslide.close(function(){
                 _load( settings.href, settings.iframe );
-                _start( settings.direction, settings.speed );
+                _start( settings.direction, settings.speed, settings.slideBody );
             });
         } else {                
             _load( settings.href, settings.iframe );
             if( $pageslide.is(':hidden') ) {
-                _start( settings.direction, settings.speed );
+                _start( settings.direction, settings.speed, settings.slideBody );
             }
         }
         
         $pageslide.data( settings );
+        
+        if( typeof settings.userCallback != 'undefined' ) settings.userCallback();
 	}
 	
 	// Close the pageslide
@@ -155,8 +162,10 @@
         var $pageslide = $('#pageslide'),
             slideWidth = $pageslide.outerWidth( true ),
             speed = $pageslide.data( 'speed' ),
+            userCallback = $pageslide.data( 'userCallback' ),
             bodyAnimateIn = {},
-            slideAnimateIn = {}
+            slideAnimateIn = {},
+            slideBody = $pageslide.data( 'slideBody' );
             	        
         // If the slide isn't open, just ignore the call
         if( $pageslide.is(':hidden') || _sliding ) return;	        
@@ -164,21 +173,26 @@
         
         switch( $pageslide.data( 'direction' ) ) {
             case 'left':
-                bodyAnimateIn['margin-left'] = '+=' + slideWidth;
+                if(slideBody)bodyAnimateIn['margin-left'] = '+=' + slideWidth;
                 slideAnimateIn['right'] = '-=' + slideWidth;
                 break;
             default:
-                bodyAnimateIn['margin-left'] = '-=' + slideWidth;
+                if(slideBody)bodyAnimateIn['margin-left'] = '-=' + slideWidth;
                 slideAnimateIn['left'] = '-=' + slideWidth;
                 break;
         }
         
-        $pageslide.animate(slideAnimateIn, speed);
-        $body.animate(bodyAnimateIn, speed, function() {
+        $pageslide.animate(slideAnimateIn, speed,function(){
             $pageslide.hide();
             _sliding = false;
             if( typeof callback != 'undefined' ) callback();
+            if( typeof userCallback != 'undefined' ) userCallback();
         });
+        if(slideBody){
+             $body.animate(bodyAnimateIn, speed, function() {
+            });
+        }
+       
     }
 	
 	/* Events */
